@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boleta de Ventas </title>
+    <link rel="stylesheet" href="estilo.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Boleta de Ventas </h1>
+    </header>
+    <main class="container">
+        <section class="sales-receipt">
+            <h2>Boleta de Ventas</h2>
+            <form id="salesForm">
+                <label for="receiptNumber">Número de Boleta:</label>
+                <input type="text" id="receiptNumber" name="receiptNumber" required>
+
+                <label for="date">Fecha:</label>
+                <input type="date" id="date" name="date" required>
+
+                <label for="customerName">Nombre del Cliente:</label>
+                <input type="text" id="customerName" name="customerName" required>
+
+                <label for="customerID">DNI :</label>
+                <input type="text" id="customerID" name="customerID">
+
+                <label for="productName">Nombre del Producto:</label>
+                <input type="text" id="productName" name="productName" required>
+
+                <label for="quantity">Cantidad:</label>
+                <input type="number" id="quantity" name="quantity" required>
+                
+                <label for="productDetails">Detalles del Producto:</label>
+                <textarea id="productDetails" name="productDetails" rows="3" required></textarea>
+                
+                <label for="productPrice">Precio Unitario:</label>
+                <input type="number" id="productPrice" name="productPrice" step="0.01" required>
+                
+                <button type="submit" id="generateReceiptBtn">Generar Boleta</button>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('salesForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Retrieve form data
+            const receiptNumber = document.getElementById('receiptNumber').value;
+            const date = document.getElementById('date').value;
+            const customerName = document.getElementById('customerName').value;
+            const customerID = document.getElementById('customerID').value;
+            const productName = document.getElementById('productName').value;
+            const quantity = document.getElementById('quantity').value;
+            const productDetails = document.getElementById('productDetails').value;
+            const productPrice = document.getElementById('productPrice').value;
+            const totalPrice = quantity * productPrice;
+
+            // Add company information
+            doc.setFontSize(14);
+            doc.text('Empresa Innovacode', 10, 10);
+            doc.setFontSize(12);
+            doc.text('RUC: 123456789', 10, 18);
+            doc.text('Dirección: Calle Falsa 123, Ciudad', 10, 26);
+            doc.text('Teléfono: (01) 234-5678', 10, 34);
+
+            // Add receipt number and date
+            const [year, month, day] = date.split('-');
+            doc.setFontSize(12);
+            doc.text(`Número de Boleta: ${receiptNumber}`, 150, 10);
+            doc.text(`Fecha: ${day}/${month}/${year}`, 150, 18);
+
+            // Add customer information
+            doc.text(`Nombre del Cliente: ${customerName}`, 10, 50);
+            if (customerID) {
+                doc.text(`DNI : ${customerID}`, 150, 50);
+            }
+
+            // Add receipt title
+            doc.setFontSize(16);
+            doc.text('Boleta de Venta', 10, 60);
+
+            // Add a horizontal line
+            doc.setLineWidth(0.5);
+            doc.line(10, 65, 200, 65);
+
+            // Add product table
+            doc.setFontSize(12);
+            doc.autoTable({
+                startY: 70,
+                head: [['Producto', 'Cantidad', 'Detalles del Producto', 'Precio Unitario', 'Importe']],
+                body: [
+                    [productName, quantity, productDetails, `$${parseFloat(productPrice).toFixed(2)}`, `$${totalPrice.toFixed(2)}`]
+                ],
+                theme: 'grid',
+                styles: { cellPadding: 3, fontSize: 10, fillColor: [255, 250, 235] },
+                headStyles: { fillColor: [16, 86, 82], textColor: [255, 255, 255] },
+                margin: { left: 10, right: 10 }
+            });
+
+            // Add total amount
+            const finalY = doc.lastAutoTable.finalY;
+            doc.setFontSize(12);
+            doc.text(`Total a Pagar: $${totalPrice.toFixed(2)}`, 10, finalY + 10);
+
+            // Add footer
+            doc.setLineWidth(0.5);
+            doc.line(10, finalY + 20, 200, finalY + 20);
+            doc.setFontSize(10);
+            doc.text('Gracias por su compra!', 10, finalY + 30);
+
+            // Save the PDF with the receipt number as the filename
+            doc.save(`${receiptNumber}.pdf`);
+        });
+    </script>
+</body>
+</html>
